@@ -117,40 +117,41 @@ function addCommas(n) {
 
 // Create a popup, but don't add it to the map yet.
 const popup = new mapboxgl.Popup({
-  closeButton: false,
+  closeButton: true,
   offset: [0, -15]
 });
 
 let selectedId;
 
 function generatePopup(event){
-  if(selectedId) {
-    map.setFeatureState({
-      source: 'tileset',
-      sourceLayer: 'bgs',
-      id: selectedId
-    }, {
-      click: false
-    });
-  }
+  // if(selectedId) {
+  //   map.setFeatureState({
+  //     source: 'tileset',
+  //     sourceLayer: 'bgs',
+  //     id: selectedId
+  //   }, {
+  //     click: false
+  //   });
+  // }
 
   const features = map.queryRenderedFeatures(event.point, {
     layers: ['bgs']
   });
-  if (!features.length) {
+  if (!features.length || features[0].id === selectedId) {
     popup.remove();
+    selectedId = null;
     return;
   }
 
   const feature = features[0];
 
-  map.setFeatureState({
-    source: 'tileset',
-    sourceLayer: 'bgs',
-    id: feature.id
-  }, {
-    click: true
-  });
+  // map.setFeatureState({
+  //   source: 'tileset',
+  //   sourceLayer: 'bgs',
+  //   id: feature.id
+  // }, {
+  //   click: true
+  // });
 
   selectedId = feature.id;
 
