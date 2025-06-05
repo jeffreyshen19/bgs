@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,900&display=swap');
+
+body{
+  margin: 0;
+}
+
+#text{
+  padding: 3em 2em 4em;
+
+  .centered{
+    text-align: center;
+  }
+
+  .content{
+    width: 550px;
+    margin: 0 auto;
+    text-align: justify;
+  }
+
+  @media screen and (max-width: 550px){
+    .content{
+      width: 100%;
+    }
+  }
+
+  h1{
+    font-family: "Playfair Display";
+    font-style: italic;
+    font-weight: 900;
+    font-size: 36px;
+    margin-bottom: 0px;
+  }
+
+  .subtitle{
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+    font-size: 16px;
+  }
+
+  p, i{
+    font-family: "Helvetica Neue";
+    font-size: 14px;
+  }
+}
+
+#map{
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+
+  #overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 10px;
+    backdrop-filter: blur(2px);
+    z-index: 1;
+    font-size: 14px;
+  }
+
+  #return{
+    position: absolute;
+    button{
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(0,0,0,.1);
+      border: 0px;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 1;
+  }
+}
+
+.heading{
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}

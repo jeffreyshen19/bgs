@@ -1,0 +1,25 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    meta(name = "description" content = "explore demographics, snap, and medicaid from the 2023 ACS")      
+    meta(name = "author" content = "Jeffrey Shen")
+    title block group explorer
+    link(href='https://api.mapbox.com/mapbox-gl-js/v2.8.2/mapbox-gl.css' rel='stylesheet' )
+    link(href='dist/CSS/main.css', rel='stylesheet', type='text/css')
+  body 
+    #map
+     #overlay 
+      label(for="select") Field: 
+      select#select(onchange="updateMap()")
+        each val in fields
+          option(value=val.name data-weighting=val.weight data-max=val.max data-color=val.color)= val.label
+      br
+      label(for="weighting") Percent or Absolute: 
+      select#weighting(onchange="updateMap()")
+        option(value="percent") Percent
+        option(value="absolute") Absolute
+    script(src='https://api.mapbox.com/mapbox-gl-js/v2.8.2/mapbox-gl.js')
+    script(src = "/dist/JS/main.js")
