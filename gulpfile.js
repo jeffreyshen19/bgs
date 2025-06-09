@@ -7,68 +7,121 @@ var minify = require("gulp-minify");
 
 const fields = [
   {
-    name: 'medicarecaid_only',
-    label: 'With Medicare/Medicaid Coverage Only',
-    max: 5932,
+    name: 'medicaid_only',
+    label: 'With Medicaid Coverage Only',
     weight: 'population',
-    color: '#0000ff'
+    color: '#0000ff',
+    bgMax: 5864,
+    countyMax: 2197187,
+    stateMax: 7702598
   },
   {
-    name: 'medicarecaid',
-    label: 'With Medicare/Medicaid Coverage',
-    max: 6969,
+    name: 'medicaid',
+    label: 'With Medicaid Coverage',
     weight: 'population',
-    color: '#0000ff'
+    color: '#0000ff',
+    bgMax: 5926,
+    countyMax: 2587154,
+    stateMax: 8898799
   },
+  {
+    name: 'medicare_only',
+    label: 'With Medicare Coverage Only',
+    weight: 'population',
+    color: '#0000ff',
+    bgMax: 4032,
+    countyMax: 577448,
+    stateMax: 2174423
+  },
+  {
+    name: 'medicare',
+    label: 'With Medicare Coverage',
+    weight: 'population',
+    color: '#0000ff',
+    bgMax: 6969,
+    countyMax: 1321644,
+    stateMax: 5223958
+  },
+  // {
+  //   name: 'households',
+  //   label: 'Households',
+  //   bgMax: 7605,
+  //   countyMax: 3390254,
+  //   stateMax: 13434847,
+  //   color: '#d35400'
+  // },
   {
     name: 'snap_households',
-    label: 'Households on Food Stamps/SNAP (in the past year)',
-    max: 1125,
+    label: 'Households on Food Stamps/SNAP',
+    bgMax: 1125,
+    countyMax: 441054,
+    stateMax: 1526052,
     weight: 'households',
     color: '#d35400'
   },
+  // {
+  //   name: 'population',
+  //   label: 'Population',
+  //   bgMax: 40481,
+  //   countyMax: 9848406,
+  //   stateMax: 39242785,
+  //   weight: 'population',
+  //   color: '#d35400'
+  // },
   {
     name: 'white',
-    label: 'White (non-Hispanic)',
-    max: 18624,
+    label: 'White',
+    bgMax: 18624,
+    countyMax: 2477324,
+    stateMax: 13573226,
     weight: 'population',
     color: '#5a228b'
   },
   {
     name: 'black',
-    label: 'Black (non-Hispanic)',
-    max: 6135,
+    label: 'Black',
+    bgMax: 6135,
+    countyMax: 1148288,
+    stateMax: 3528533,
+    weight: 'population',
+    color: '#5a228b'
+  },
+  {
+    name: 'aian',
+    label: 'Alaska Native/American Indian',
+    bgMax: 5431,
+    countyMax: 60061,
+    stateMax: 271284,
+    weight: 'population',
+    color: '#5a228b'
+  },
+  {
+    name: 'asian',
+    label: 'Asian',
+    bgMax: 7548,
+    countyMax: 1458413,
+    stateMax: 5906995,
+    weight: 'population',
+    color: '#5a228b'
+  },
+  {
+    name: 'nhpi',
+    label: 'Native Hawaiian/Pacific Islander',
+    bgMax: 1676,
+    countyMax: 93615,
+    stateMax: 140064,
     weight: 'population',
     color: '#5a228b'
   },
   {
     name: 'hispanic',
     label: 'Hispanic',
-    max: 13887,
+    bgMax: 13887,
+    countyMax: 4753369,
+    stateMax: 15630830,
     weight: 'population',
     color: '#5a228b'
   },
-  {
-    name: 'asian',
-    label: 'Asian (non-Hispanic)',
-    max: 7548,
-    weight: 'population',
-    color: '#5a228b'
-  },
-  {
-    name: 'aian',
-    label: 'Alaska Native/American Indian (non-Hispanic)',
-    max: 5431,
-    weight: 'population',
-    color: '#5a228b'
-  },
-  {
-    name: 'nhpi',
-    label: 'Native Hawaiian/Pacific Islander (non-Hispanic)',
-    max: 1676,
-    weight: 'population',
-    color: '#5a228b'
-  }
   
 ]
 

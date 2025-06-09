@@ -4,6 +4,15 @@ body{
   margin: 0;
 }
 
+h1{
+    font-family: "Playfair Display";
+    font-style: italic;
+    font-weight: 900;
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+
+
 #text{
   padding: 3em 2em 4em;
 
@@ -23,14 +32,7 @@ body{
     }
   }
 
-  h1{
-    font-family: "Playfair Display";
-    font-style: italic;
-    font-weight: 900;
-    font-size: 36px;
-    margin-bottom: 0px;
-  }
-
+  
   .subtitle{
     margin-top: 0.5em;
     margin-bottom: 1em;
@@ -43,17 +45,27 @@ body{
   }
 }
 
+.mapboxgl-popup-content{
+  width: 250px;
+  height: 200px;
+  overflow-y: scroll;
+}
+
 #map{
   width: 100vw;
   height: 100vh;
   position: relative;
 
+  .backdrop-filter{
+    backdrop-filter: blur(2px);
+  }
+
   #overlay {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 15px;
+    left: 15px;
     padding: 10px;
-    backdrop-filter: blur(2px);
+    // background-color: white;
     z-index: 1;
     font-size: 14px;
   }

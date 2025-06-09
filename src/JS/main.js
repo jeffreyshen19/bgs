@@ -2,11 +2,15 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiamVmZnJleXNoZW5jYyIsImEiOiJjamE5MDI4YmowMmMzM
 const map = new mapboxgl.Map({
     container: 'map', // container ID
     style: 'mapbox://styles/mapbox/light-v11', // style URL
-    center: [-74, 40], 
-    zoom: 6, 
+    center: [-74, 40],
+    zoom: 6,
     minZoom: 3,
     projection: "mercator"
 });
+
+const bgSources = ["9am8kb0i", "40bv3jkg", "8yvyazok", "bmt0dizu", "8noqvw6a", "9rvau020", "1i3rnvxb"]
+const countySource = "5th9xdpz"
+const stateSource = "dn2i24or";
 
 function getLocation() {
     return new Promise((resolve, reject) => {
@@ -19,91 +23,171 @@ function getLocation() {
     })
 };
 
-function updateMap(){
-  const isWeighted = document.getElementById("weighting").value === "percent";
-  const e = document.getElementById("select");
-  const option = e.options[e.selectedIndex];
-  const field = {
-    name: e.value,
-    weight: option.getAttribute("data-weighting"),
-    max: +option.getAttribute("data-max"),
-    color: option.getAttribute("data-color"),
-  }
+const fieldMapping = {
+    'medicaid_only': 'a',
+    'medicaid': 'b',
+    'medicare_only': 'c',
+    'medicare': 'd',
+    'households': 'e',
+    'snap_households': 'f',
+    'population': 'g',
+    'white': 'h',
+    'black': 'i',
+    'aian': 'j',
+    'asian': 'k',
+    'nhpi': 'l',
+    'hispanic': 'm'     
+}
 
-  const fillColor = [
-    "case",
-    ["==", ["to-number", ['get',field.weight]], 0],
-    "#ffffff", // white for none
-    [
-      'interpolate',
-      ['linear'],
-      [
-        '/',
-        ["to-number", ['get',field.name]],
-        (isWeighted ? ["to-number", ['get',field.weight]] : 1)
-      ],
-      0, '#ffffff', 
-      (isWeighted ? 1 : field.max), field.color
+const layers = {
+    "bgs": {
+        minzoom: 7,
+        maxzoom: 22,
+        sources: ['bgs-0', 'bgs-1', 'bgs-2', 'bgs-3', 'bgs-4', 'bgs-5', 'bgs-6'],
+        sourceLayers: ["1-simplifed-4oudnq", "2-simplifed-54wyov", "3-simplifed-ali8na", "5-simplifed-8ksaob", "4-simplifed-25v6ls", "6-simplifed-bd2h7t", "7-simplifed-cc5d46"]
+    },
+    "counties": {
+        minzoom: 5,
+        maxzoom: 7,
+        sources: ['counties'],
+        sourceLayers: ['counties-atvf5u']
+    },
+    "states": {
+        minzoom: 0,
+        maxzoom: 5,
+        sources: ['states'],
+        sourceLayers: ['states-34662l']
+    }
+}
+
+function setLayer(type, field) {
+
+    const fieldMax = type === 'bgs' ? field.bgMax : (type === 'counties' ? field.countyMax : field.stateMax);
+
+    const fillColor = [
+        "case",
+        ["==", ["to-number", ['get', type === 'bgs' ? fieldMapping[field.weight] : field.weight]], 0],
+        "#ffffff", // white for none
+        [
+            'interpolate',
+            ['linear'],
+            [
+                '/',
+                ["to-number", ['get', type === 'bgs' ? fieldMapping[field.name] : field.name]],
+                (field.useWeighting ? ["to-number", ['get', type === 'bgs' ? fieldMapping[field.weight] : field.weight]] : 1)
+            ],
+            0, '#ffffff',
+            (field.useWeighting ? 1  : fieldMax), field.color
+        ]
     ]
-  ]
 
-  if(map.getLayer('bgs')) {
-    map.setPaintProperty('bgs', 'fill-color', fillColor);
-  }
-  else {
-    map.addLayer({
-      id: 'bgs',
-      type: 'fill',
-      source: 'tileset',
-      'source-layer': 'bgs', 
-      paint: {
-        'fill-opacity': 0.7,
-        'fill-color': fillColor
-      }
+    const {sources, minzoom, maxzoom, sourceLayers} = layers[type];
+    for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
+        const sourceLayer = sourceLayers[i];
+        const fillLayerId = `${source}-fill-${i}`;
+        const boundaryLayerId = `${source}-boundary-${i}`;
+        if (map.getLayer(fillLayerId)) {
+            map.setPaintProperty(fillLayerId, 'fill-color', fillColor);
+        }
+        else {
+            map.addLayer({
+                id: fillLayerId,
+                type: 'fill',
+                minzoom, 
+                maxzoom,
+                source: source,
+                'source-layer': sourceLayer,
+                paint: {
+                    'fill-opacity': 0.7,
+                    'fill-color': fillColor
+                }
+            });
+        }
+
+        if (!map.getLayer(boundaryLayerId)) map.addLayer({
+            id: boundaryLayerId,
+            type: 'line',
+            source: source,
+            'source-layer': sourceLayer,
+            minzoom,
+            maxzoom,
+            paint: {
+                'line-color': [
+                    'case',
+                    ['==', ['feature-state', 'click'], true],
+                    '#c44d56',
+                    '#bdc3c7'
+                ],
+                'line-width': [
+                    'case',
+                    ['==', ['feature-state', 'click'], true],
+                    3,
+                    0.5
+                ],
+            }
+        });
+    }
+
+
+
+}
+
+function updateMap() {
+    const e = document.getElementById("select");
+    const option = e.options[e.selectedIndex];
+
+    const field = {
+        name: e.value,
+        weight: option.getAttribute("data-weighting"),
+        useWeighting: document.getElementById("weighting").value === "percent",
+        bgMax: +option.getAttribute("data-bg-max"),
+        countyMax: +option.getAttribute("data-county-max"),
+        stateMax: +option.getAttribute("data-state-max"),
+        color: option.getAttribute("data-color"),
+    }
+
+    setLayer('bgs', field);
+    setLayer('counties', field);
+    setLayer('states', field);
+}
+
+function addSources() {
+    for (let i = 0; i < bgSources.length; i++) {
+        const bgSource = bgSources[i];
+        map.addSource(`bgs-${i}`, {
+            type: 'vector',
+            url: `mapbox://jeffreyshencc.${bgSource}`,
+            generqteId: true,
+        });
+    }
+
+    map.addSource(`counties`, {
+        type: 'vector',
+        url: `mapbox://jeffreyshencc.${countySource}`,
     });
-  }
+
+    map.addSource(`states`, {
+        type: 'vector',
+        url: `mapbox://jeffreyshencc.${stateSource}`,
+    });
 }
 
 map.on('load', () => {
-  getLocation().then((location) => {
-    if(location) map.flyTo({center: [location.longitude, location.latitude], zoom: 10});
-  });
+    getLocation().then((location) => {
+        if (location) map.flyTo({ center: [location.longitude, location.latitude], zoom: 10 });
+    });
 
-  map.addSource('tileset', {
-    type: 'vector',
-    url: 'mapbox://jeffreyshencc.snap',
-    promoteId:'GEOID'
-  });
+    addSources();
 
-  updateMap();
+    updateMap();
 
-  map.addLayer({
-    id: 'bgs-boundary',
-    type: 'line',
-    source: 'tileset',
-    'source-layer': 'bgs', 
-    minzoom: 9,
-    paint: {
-      'line-color': [
-        'case',
-        ['==', ['feature-state', 'click'], true],
-        '#c44d56',
-        '#bdc3c7'
-      ],
-      'line-width':  [
-        'case',
-        ['==', ['feature-state', 'click'], true],
-        1,
-        0.5
-      ],
-    }
-  });
 });
 
 map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
 
 const nav = new mapboxgl.NavigationControl({
-  visualizePitch: true
+    visualizePitch: true
 });
 map.addControl(nav, 'bottom-right');
 
@@ -117,111 +201,129 @@ function addCommas(n) {
 
 // Create a popup, but don't add it to the map yet.
 const popup = new mapboxgl.Popup({
-  closeButton: false,
-  offset: [0, -15]
+    closeButton: true,
+    offset: [0, -15]
 });
 
 let selectedId;
 
-function generatePopup(event){
-  if(selectedId) {
-    map.setFeatureState({
-      source: 'tileset',
-      sourceLayer: 'bgs',
-      id: selectedId
-    }, {
-      click: false
-    });
-  }
+function setFeatureState(id, click) {
+    for(let i = 0; i < layers.bgs.sources.length; i++) {
+        const source = layers.bgs.sources[i];
+        const sourceLayer = layers.bgs.sourceLayers[i];
 
-  const features = map.queryRenderedFeatures(event.point, {
-    layers: ['bgs']
-  });
-  if (!features.length) {
-    popup.remove();
-    return;
-  }
+        map.setFeatureState({
+            source,
+            sourceLayer,
+            id
+        }, {
+            click
+        });
+    }
+}
 
-  const feature = features[0];
+function generatePopup(event) {
 
-  map.setFeatureState({
-    source: 'tileset',
-    sourceLayer: 'bgs',
-    id: feature.id
-  }, {
-    click: true
-  });
+    const features = map.queryRenderedFeatures(event.point).filter((f) => f.layer.type === 'fill' && (f.layer.source === "counties" || f.layer.source === "states" || f.layer.source.startsWith("bgs-")));
 
-  selectedId = feature.id;
+    if (!features.length || features[0].id === selectedId) {
+        popup.remove();
+        // selectedId = null;
+        return;
+    }
 
-  
-  const fields = [
-  {
-    name: 'medicarecaid_only',
-    label: 'With Medicare/Medicaid Coverage Only',
-    weight: 'population',
-  },
-  {
-    name: 'medicarecaid',
-    label: 'With Medicare/Medicaid Coverage',
-    weight: 'population',
-  },
-  {
-    name: 'snap_households',
-    label: 'Households on Food Stamps/SNAP (in the past year)',
-    weight: 'households',
-  },
-  {
-    name: 'white',
-    label: 'White (non-Hispanic)',
-    weight: 'population',
-  },
-  {
-    name: 'black',
-    label: 'Black (non-Hispanic)',
-    weight: 'population',
-  },
-  {
-    name: 'hispanic',
-    label: 'Hispanic',
-    weight: 'population',
-  },
-  {
-    name: 'asian',
-    label: 'Asian (non-Hispanic)',
-    weight: 'population',
-  },
-  {
-    name: 'aian',
-    label: 'Alaska Native/American Indian (non-Hispanic)',
-    weight: 'population',
-  },
-  {
-    name: 'nhpi',
-    label: 'Native Hawaiian/Pacific Islander (non-Hispanic)',
-    weight: 'population',
-  }
-  
-]
+    const feature = features[0];
 
-  let string = "";
-  for(const field of fields) {
-    const value = +feature.properties[field.name];
-    const weightValue = +feature.properties[field.weight];
-    const percentage = weightValue ? (value / weightValue * 100) : null;
+    // if(selectedId) setFeatureState(selectedId, false);
+    // setFeatureState(feature.id, true);
+    // selectedId = feature.id;
 
-    string += `<p style = "margin-top:0;margin-bottom:0"><strong>${field.label}</strong>: ${addCommas(value)}${percentage !== null ? ` (${percentage.toFixed(2)}%)` : ''}</p>`;
+    const fields = [
+        {
+            name: 'medicaid_only',
+            label: 'With Medicaid Only',
+            weight: 'population',
+        },
+        {
+            name: 'medicaid',
+            label: 'With Medicaid',
+            weight: 'population',
+        },
+        {
+            name: 'medicare_only',
+            label: 'With Medicare Only',
+            weight: 'population',
+        },
+        {
+            name: 'medicare',
+            label: 'With Medicare',
+            weight: 'population',
+        },
+        {
+            name: 'snap_households',
+            label: 'Households on Food Stamps/SNAP*',
+            weight: 'households',
+        },
+        {
+            name: 'white',
+            label: 'White**',
+            weight: 'population',
+        },
+        {
+            name: 'black',
+            label: 'Black**',
+            weight: 'population',
+        },
+        {
+            name: 'hispanic',
+            label: 'Hispanic/Latine',
+            weight: 'population',
+        },
+        {
+            name: 'asian',
+            label: 'Asian**',
+            weight: 'population',
+        },
+        {
+            name: 'aian',
+            label: 'Alaska Native/American Indian**',
+            weight: 'population',
+        },
+        {
+            name: 'nhpi',
+            label: 'Native Hawaiian/Pacific Islander**',
+            weight: 'population',
+        }
 
-  }
+    ]
 
-  // Code from the next step will go here.
-  popup.setLngLat(event.lngLat)
-  .setHTML(
-    `<span class = "heading">Block Group ${feature.properties.GEOID}</span>
-    ${string}
-    `
-  )
-  .addTo(map);
+    let string = "";
+    for (const field of fields) {
+        const value = +feature.properties[field.name] || +feature.properties[fieldMapping[field.name]];
+        const weightValue = +feature.properties[field.weight] || +feature.properties[fieldMapping[field.weight]]
+        const percentage = weightValue ? (value / weightValue * 100) : null;
+
+        string += `<p style = "margin-top:0;margin-bottom:0"><strong>${field.label}</strong>: ${addCommas(value)}${percentage !== null ? ` (${percentage.toFixed(2)}%)` : ''}</p>`;
+        if(field.name === 'snap_households') string += "<br>"
+    }
+
+    let heading;
+
+    if(feature.layer.source === 'states') heading = feature.properties.NAME;
+    else if(feature.layer.source === 'counties') heading = `${feature.properties.NAME} County`;
+    else heading = `Block Group`;
+
+    // Code from the next step will go here.
+    popup.setLngLat(event.lngLat)
+        .setHTML(
+            `<span class = "heading">${heading}</span>
+            ${string}
+            <br>
+            <i>* within the past 12 months</i><br>
+            <i>** non-Hispanic</i>
+            `
+        )
+        .addTo(map);
 }
 
 map.on('click', generatePopup);
