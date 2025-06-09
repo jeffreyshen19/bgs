@@ -299,9 +299,9 @@ function generatePopup(event) {
 
     let string = "";
     for (const field of fields) {
-        const value = +feature.properties[field.name] || +feature.properties[fieldMapping[field.name]];
+        const value = +feature.properties[field.name] || +feature.properties[fieldMapping[field.name]] || 0;
         const weightValue = +feature.properties[field.weight] || +feature.properties[fieldMapping[field.weight]]
-        const percentage = weightValue ? (value / weightValue * 100) : null;
+        const percentage = weightValue ? (value / weightValue * 100) : 0;
 
         string += `<p style = "margin-top:0;margin-bottom:0"><strong>${field.label}</strong>: ${addCommas(value)}${percentage !== null ? ` (${percentage.toFixed(2)}%)` : ''}</p>`;
         if(field.name === 'snap_households') string += "<br>"
